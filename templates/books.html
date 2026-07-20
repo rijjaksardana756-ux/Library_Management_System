@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <h1>📚 Book Management</h1>
+            <p>Manage your library records</p>
+        </div>
+        <nav>
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('books_page') }}">Books</a>
+        </nav>
+    </header>
+
+    <main class="books-page">
+        <section class="page-intro">
+            <h2>Library Book Records</h2>
+            <p>Use the table below to check book availability and update records.</p>
+        </section>
+
+        {% if message %}
+        <div class="message-box">{{ message }}</div>
+        {% endif %}
+
+        <section class="table-section">
+            <h3>Books List</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Book ID</th>
+                        <th>Book Name</th>
+                        <th>Author</th>
+                        <th>Availability Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr data-book-name="{{ book.name }}">
+                        <td>{{ book.id }}</td>
+                        <td>{{ book.name }}</td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ 'Available' if book.available else 'Issued' }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('issue_book', book_id=book.id) }}" class="inline-form">
+                                <button class="action-btn issue-btn" type="submit" data-action="Issue">Issue</button>
+                            </form>
+                            <form method="post" action="{{ url_for('return_book', book_id=book.id) }}" class="inline-form">
+                                <button class="action-btn return-btn" type="submit" data-action="Return">Return</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="form-section">
+            <h3>Add a New Book</h3>
+            <form method="post" action="{{ url_for('books_page') }}" class="book-form">
+                <label>Book Name
+                    <input type="text" name="book_name" placeholder="Enter book name" required>
+                </label>
+                <label>Author
+                    <input type="text" name="author" placeholder="Enter author name" required>
+                </label>
+                <button class="btn" type="submit">Add Book</button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const buttons = document.querySelectorAll(".action-btn");
+            buttons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    const action = button.dataset.action;
+                    const row = button.closest("tr");
+                    const bookName = row ? row.dataset.bookName : "this book";
+                    const message = `${action} request sent for ${bookName}`;
+                    const box = document.querySelector(".message-box") || document.createElement("div");
+                    box.className = "message-box";
+                    box.textContent = message;
+                    if (!document.querySelector(".message-box")) {
+                        document.querySelector(".books-page").insertBefore(box, document.querySelector(".table-section"));
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
